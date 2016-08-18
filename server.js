@@ -28,21 +28,22 @@ app.get('/', function (req, res) {
 	res.send('Todo API Root');
 });
 
-// GET /todos
-// This will work for all get requests, whether
-// they have a query or not
+// GET /todos?completed=false&q=work
 app.get('/todos', function (req, res) {
-    var queryParams = req.query;
-    var filteredTodos = todos;
-    
-    // If has property && completed === true
-    // filteredTodos = _.where(filterTodos, ?)
-    // else if has prop && completed if false
-    if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-        filteredTodos = _.where(filteredTodos, {completed: true});
-    } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-        filteredTodos = _.where(filteredTodos, {completed: false});
-    };
+	var queryParams = req.query;
+	var filteredTodos = todos;
+
+	if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+		filteredTodos = _.where(filteredTodos, {completed: true});
+	} else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+		filteredTodos = _.where(filteredTodos, {completed: false});
+	}
+
+	if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
+		filteredTodos = _.filter(filteredTodos, function (todo) {
+			return todo.task.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
+		});
+	}
 
 	res.json(filteredTodos);
 });
