@@ -5,7 +5,22 @@ var _ = require('underscore');
 var app = express();
 var PORT = process.env.PORT || 3000;
 var todos = [];
-var todoNextId = 1;
+var todoNextId = 4;
+
+// For Testing
+todos = [{
+    id: 1,
+    task: "Wash the dogs",
+    completed: false
+}, {
+    id: 2,
+    task: "Laundry",
+    completed: false
+}, {
+    id: 3,
+    task: "Do homework",
+    completed: false
+}];
 
 app.use(bodyParser.json());
 
@@ -51,6 +66,19 @@ app.post('/todos', function (req, res) {
 	res.json(body);
 });
 
+// DELETE /todos/:id
+app.delete('/todos/:id', function (req, res) {
+	var todoId = parseInt(req.params.id, 10);
+	var matchedTodo = _.findWhere(todos, {id: todoId});
+
+	if (matchedTodo) {
+        todos = _.without(todos, matchedTodo);
+        // this call to json will send along a status=200 as well
+        res.json(matchedTodo);
+	} else {
+		res.status(404).json({"error": "No todo found with that id"});
+	}
+});
 
 app.listen(PORT, function () {
 	console.log('Express listening on port ' + PORT + '...');
