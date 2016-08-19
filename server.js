@@ -17,23 +17,27 @@ app.get('/', function (req, res) {
 //---------------------------------------------------------------
 // GET /todos?completed=false&q=work
 app.get('/todos', function (req, res) {
-	var queryParams = req.query;
-	var filteredTodos = todos;
+	var query = req.query;
+    var where = {};
 
-	if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-		filteredTodos = _.where(filteredTodos, {completed: true});
-	} else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-		filteredTodos = _.where(filteredTodos, {completed: false});
-	}
+    if (query.hasOwnProperty('completed') && query.completed === 'true') {
+       where.completed = true;
+    } else if (query.hasOwnProperty('completed') && query.completed === 'false') {
+        where.completed = false;
+    }
 
-	if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-		filteredTodos = _.filter(filteredTodos, function (todo) {
-			return todo.task.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
-		});
-	}
+    if (query.hasOwnProperty('q') && query.q.length > 0) {
+       where.task = { $like: '%' + query.q + '%' };
+    } 
 
-	res.json(filteredTodos);
+    db.todo.findAll({where: where}).then(function(todos) {
+        res.json(todos);
+    }, function(e) {
+        res.status(500).send();
+    })
 });
+          
+
 
 //----------------------------------------------------------------
 // GET /todos/:id
@@ -83,6 +87,7 @@ app.delete('/todos/:id', function (req, res) {
 // UPDATE a task
 app.put('/todos/:id', function(req, res) {
     var body = _.pick(req.body, 'task', 'completed');
+    
     var todoId = parseInt(req.params.id, 10);
     var matchedTodo = _.findWhere(todos, {id: todoId});
     
@@ -119,7 +124,7 @@ app.put('/todos/:id', function(req, res) {
     _.extend(matchedTodo, validAttributes);
     
     // this has to be here or postman hangs
-    res.json(matchedTodo);
+    res.json(matchedTodo); 
 
 });
 
