@@ -92,45 +92,30 @@ app.delete('/todos/:id', function (req, res) {
 // UPDATE a task
 app.put('/todos/:id', function(req, res) {
     var body = _.pick(req.body, 'task', 'completed');
-    
     var todoId = parseInt(req.params.id, 10);
-    var matchedTodo = _.findWhere(todos, {id: todoId});
-    
-    // If no record matches id
-    if (!matchedTodo) {
-		return res.status(404).send();
-	};
-    
-    // Keep only the fields we want
-	var body = _.pick(req.body, 'task', 'completed');
-    var validAttributes = {};
-    validAttributes.id = todoId;
-    
-    if(body.hasOwnProperty('task') && _.isString(body.task) && body.task.trim().length > 0) {
-        validAttributes.task = body.task.trim();
-    } else {
-        //Never provided valid attribute
-        return res.status(400).send();
-    };
-    
-    if(body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
-        validAttributes.completed = body.completed;
-    } else if (body.hasOwnProperty('completed')) {
-        // has property but it's not boolean
-       validAttributes.completed = false;
-    } else {
-        //Never provided attribute, no problem
-        validAttributes.completed = false;
-    };
- 
-	// Everything is good, so update fields
-    // objects are passed by reference, so this 
-    // updates the actual object
-    _.extend(matchedTodo, validAttributes);
-    
-    // this has to be here or postman hangs
-    res.json(matchedTodo); 
+    attributes = {};
+     
+    if(body.hasOwnProperty('completed')) {
+        attributes.completed = body.completed;
+    }
 
+    if (body.hasOwnProperty('task')) {
+        attributes.task = body.task;
+    }
+
+    db.todo.findById(todoId).then(function(todo) {
+        if (todo) {
+            todo.update(attributes).then( function(todo) {
+                res.json(todo.toJSON());
+            }, function(e) {
+                res.status(400).json(e);
+            });
+        } else {
+            res.status(404).send();
+        }
+    }, function() {
+        res.status(500).send();
+    });
 });
 
 db.sequelize.sync().then( function() {
