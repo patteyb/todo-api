@@ -121,18 +121,18 @@ app.put('/todos/:id', function(req, res) {
 /* USER FUNCTIONS ----------------------------------------------------- */
 
 // POST /user
-app.post('/user', function (req, res) {
+app.post('/users', function (req, res) {
     // Keep only the fields we want
 	var body = _.pick(req.body, 'email', 'password');
 
     db.user.create(body).then(function (user) {
-		res.json(user.toJSON());
+		res.json(user.toPublicJSON());
 	}, function (e) {
 		res.status(400).json(e);
 	});
 });
 
-db.sequelize.sync().then( function() {
+db.sequelize.sync().then(function() {
     app.listen(PORT, function () {
 	    console.log('Express listening on port ' + PORT + '...');
     });
